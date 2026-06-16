@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Prochainement{% endblock %}
+
+{% block content %}
+<header class="client-top">
+  <img src="{{ url_for('static', filename='img/logo_principal_horizontal.png') }}" alt="Intégrale Connect">
+  <div>
+    <strong>{{ current_user.tenant.company_name }}</strong>
+    <a href="{{ url_for('client_dashboard') }}">Retour</a>
+  </div>
+</header>
+
+<main class="placeholder">
+  <div class="placeholder-card">
+    <span class="eyebrow">Prochainement</span>
+    <h1>{{ module_name }}</h1>
+    <p>Ce module est en cours de développement.</p>
+    <a class="btn btn-primary" href="{{ url_for('client_dashboard') }}">Retour au tableau de bord</a>
+  </div>
+</main>
+{% endblock %}

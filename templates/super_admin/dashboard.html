@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Administration principale{% endblock %}
+
+{% block content %}
+<div class="layout">
+  <aside class="sidebar">
+    <img src="{{ url_for('static', filename='img/logo_sur_fond_fonce.png') }}" alt="Intégrale Connect">
+    <nav>
+      <a class="active" href="{{ url_for('super_admin_dashboard') }}">Tableau de bord</a>
+      <a href="{{ url_for('tenants') }}">Centres de formation</a>
+      <a href="{{ url_for('create_tenant') }}">Créer un utilisateur</a>
+      <a href="#">Paramètres</a>
+      <a href="{{ url_for('logout') }}">Déconnexion</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="page-head">
+      <span class="eyebrow">Administration principale</span>
+      <h1>Tableau de bord</h1>
+      <p>Gérez vos centres, comptes clients et droits d’accès aux modules.</p>
+    </div>
+
+    <section class="stats-grid">
+      <div class="stat"><span>Centres de formation</span><strong>{{ stats.tenants }}</strong></div>
+      <div class="stat"><span>Comptes actifs</span><strong>{{ stats.active_accounts }}</strong></div>
+      <div class="stat"><span>Modules CRM activés</span><strong>{{ stats.crm }}</strong></div>
+      <div class="stat"><span>Modules CPF activés</span><strong>{{ stats.cpf }}</strong></div>
+      <div class="stat"><span>Modules Partenaires activés</span><strong>{{ stats.partenaires }}</strong></div>
+    </section>
+  </main>
+</div>
+{% endblock %}

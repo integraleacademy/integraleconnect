@@ -1,0 +1,55 @@
+<form method="post" class="form-card">
+  <div class="form-grid">
+    <label>
+      Nom société
+      <input name="company_name" required value="{{ tenant.company_name if tenant is defined else '' }}">
+    </label>
+
+    <label>
+      SIRET
+      <input name="siret" required maxlength="14" pattern="[0-9]{14}" value="{{ tenant.siret if tenant is defined else '' }}">
+    </label>
+
+    <label>
+      Nom contact
+      <input name="contact_name" required value="{{ tenant.contact_name if tenant is defined else '' }}">
+    </label>
+
+    <label>
+      Nom utilisateur
+      <input name="username" required value="{{ user.username if user is defined and user else '' }}">
+    </label>
+
+    {% if tenant is not defined %}
+      <label>
+        Mot de passe
+        <input name="password" type="password" required>
+      </label>
+    {% endif %}
+  </div>
+
+  {% if tenant is defined %}
+    <label class="check">
+      <input type="checkbox" name="is_active" {% if tenant.is_active %}checked{% endif %}>
+      Compte actif
+    </label>
+  {% endif %}
+
+  <h2>Droits modules</h2>
+  <div class="checks">
+    <label class="check">
+      <input type="checkbox" name="module_crm" {% if access is defined and access.module_crm %}checked{% endif %}>
+      CRM
+    </label>
+    <label class="check">
+      <input type="checkbox" name="module_partenaires" {% if access is defined and access.module_partenaires %}checked{% endif %}>
+      Partenaires
+    </label>
+    <label class="check">
+      <input type="checkbox" name="module_cpf" {% if access is defined and access.module_cpf %}checked{% endif %}>
+      CPF
+    </label>
+  </div>
+
+  <button class="btn btn-primary" type="submit">Enregistrer</button>
+</form>
