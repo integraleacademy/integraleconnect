@@ -9,9 +9,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from models import ModuleAccess, Tenant, User, db
 
 MODULES = {
-    "crm": {"label": "Intégrale Connect CRM", "field": "module_crm", "icon": "◇", "description": "Pipeline commercial, relances et suivi des candidats en temps réel."},
-    "partenaires": {"label": "Intégrale Connect Partenaires", "field": "module_partenaires", "icon": "◎", "description": "Pilotage du réseau, conventions, opportunités et reporting partenaires."},
-    "cpf": {"label": "Intégrale Connect CPF", "field": "module_cpf", "icon": "◈", "description": "Suivi CPF, conformité Qualiopi et dossiers administratifs centralisés."},
+    "crm": {"label": "Intégrale Connect CRM", "short_label": "CRM", "field": "module_crm", "icon": "◇", "logo": "img/iaconnectcrm.png", "description": "Pipeline commercial, relances et suivi des candidats en temps réel."},
+    "cpf": {"label": "Intégrale Connect CPF", "short_label": "CPF", "field": "module_cpf", "icon": "◈", "logo": "img/iaconnectcpf.png", "description": "Suivi CPF, conformité Qualiopi et dossiers administratifs centralisés."},
+    "partenaires": {"label": "Intégrale Connect Partenaires", "short_label": "Partenaires", "field": "module_partenaires", "icon": "◎", "logo": "img/iaconnectpartenaires.png", "description": "Pilotage du réseau, conventions, opportunités et reporting partenaires."},
 }
 
 
@@ -241,7 +241,10 @@ def create_app():
     @role_required("client_admin")
     def client_dashboard():
         access = current_user.tenant.module_access if current_user.tenant else None
-        return render_template("client/dashboard.html", access=access)
+        enabled_modules = [key for key, meta in MODULES.items() if access and getattr(access, meta["field"])]
+        requested_module = request.args.get("module")
+        active_module = requested_module if requested_module in enabled_modules else (enabled_modules[0] if enabled_modules else None)
+        return render_template("client/dashboard.html", access=access, active_module=active_module, enabled_modules=enabled_modules)
 
     @app.route("/modules/<module_key>")
     @login_required
