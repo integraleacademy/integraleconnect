@@ -894,3 +894,41 @@ th {
   .action-table { grid-template-columns: 1fr 86px 86px; }
   .title-actions { flex-wrap: wrap; }
 }
+
+.quick-actions-list {
+  display: grid;
+  border-top: 1px solid #ebedf2;
+}
+
+.quick-actions-list a {
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #ebedf2;
+  color: #4a5266;
+}
+
+.quick-actions-list a:hover,
+.recent-item:hover {
+  background: #f8faff;
+}
+
+.quick-actions-list strong {
+  color: #42495d;
+}
+
+.quick-actions-list span,
+.muted-item span,
+.muted-item em {
+  color: #7b86a3;
+}
+
+.module-summary-table b {
+  min-width: 0;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.muted-item {
+  opacity: 0.62;
+}

@@ -66,31 +66,41 @@
 
       <section class="dashboard-grid">
         <article class="widget-card action-widget" id="actions">
-          <div class="widget-head"><h2>Accueil - Mes actions</h2><span>⋮</span></div>
-          <div class="action-table">
-            <span></span><strong>En retard</strong><strong>Aujourd'hui</strong>
-            <span>Mes factures</span><b class="danger-line">1</b><b class="blue-line">0</b>
-            <span>Dossiers à traiter</span><b class="orange-line">4</b><b class="blue-line">7</b>
+          <div class="widget-head"><h2>Vue d’ensemble</h2><span>⋮</span></div>
+          <div class="action-table module-summary-table">
+            <span>Module sélectionné</span><strong>Statut</strong><strong>Accès</strong>
+            <span>{{ active_meta.short_label if active_meta else 'Aucun module' }}</span><b class="blue-line">Actif</b><b class="blue-line">{{ enabled_modules|length }}</b>
+            <span>Modules disponibles</span><b class="orange-line">{{ enabled_modules|length }}</b><b class="blue-line">{{ modules_config|length }}</b>
           </div>
         </article>
 
         <article class="widget-card planning-widget" id="planning">
-          <div class="widget-head"><h2>Accueil - Mon planning</h2><span>⋮</span></div>
-          <div class="date-row"><span>‹</span><strong>16/06/2026</strong><span>›</span></div>
-          <div class="empty-event"><strong>Mar.<br><em>16</em></strong><span>Pas d'évènement</span></div>
+          <div class="widget-head"><h2>Actions rapides</h2><span>⋮</span></div>
+          <div class="quick-actions-list">
+            {% if active_module %}
+              <a href="{{ url_for('module_placeholder', module_key=active_module) }}"><strong>Ouvrir {{ active_meta.short_label }}</strong><span>Accéder à l’espace {{ active_meta.label }}</span></a>
+            {% endif %}
+            <a href="#modules"><strong>Changer de module</strong><span>Basculer entre CRM, CPF et Partenaires selon vos droits.</span></a>
+            <a href="#activity"><strong>Consulter l’activité</strong><span>Voir les derniers événements généraux de votre espace.</span></a>
+          </div>
         </article>
 
         <article class="widget-card list-widget" id="activity">
-          <div class="widget-head"><h2>{{ active_meta.short_label if active_meta else 'Module' }} - Éléments récents</h2><span>⋮</span></div>
-          {% for item in ['APP BTS MCO 2EME ANNEE 2024-2026', 'APP BTS MOS 1ERE ANNEE 2026-2028', 'FC APS JUILLET 2026', 'FC DIRIGEANT NOVEMBRE 2026', 'AFC APS + SSIAP 1 AVRIL 2026'] %}
-            <a class="recent-item" href="{{ url_for('module_placeholder', module_key=active_module) if active_module else '#' }}"><strong>{{ item }}</strong><em>Consulté il y a {{ loop.index }} jour{{ 's' if loop.index > 1 else '' }}</em></a>
+          <div class="widget-head"><h2>{{ active_meta.short_label if active_meta else 'Module' }} - Activité récente</h2><span>⋮</span></div>
+          {% for item in ['Ouverture du tableau de bord', 'Synchronisation des droits modules', 'Mise à jour de l’espace client', 'Préparation des widgets', 'Vérification des accès'] %}
+            <a class="recent-item" href="{{ url_for('module_placeholder', module_key=active_module) if active_module else '#' }}"><strong>{{ item }}</strong><em>{{ active_meta.short_label if active_meta else 'Intégrale Connect' }} · il y a {{ loop.index }} min</em></a>
           {% endfor %}
         </article>
 
-        <article class="widget-card list-widget dossiers-widget">
-          <div class="widget-head"><h2>Dossier - Éléments récents</h2><span>⋮</span></div>
-          {% for dossier in ['Dossier0337 - BOUKHARI Sara', 'Dossier0368 - MALET Mickael', 'Dossier0378 - BOUTIN Pauline', 'Dossier0374 - BAEGERT Romain', 'Dossier0375 - YESSAD Rayan'] %}
-            <a class="recent-item dossier" href="{{ url_for('module_placeholder', module_key=active_module) if active_module else '#' }}"><strong>♙ {{ dossier }}</strong><span>{{ ['DIRIGEANT D’UNE ENTREPRISE DE SÉCURITÉ PRIVÉE', 'CHAUFFEUR VTC', 'BTS PI', 'TFP APS', 'Conseiller formation'][loop.index0] }}</span><em>Consulté il y a {{ loop.index * 10 }} minutes</em></a>
+        <article class="widget-card list-widget modules-widget">
+          <div class="widget-head"><h2>Modules Intégrale Connect</h2><span>⋮</span></div>
+          {% for key, meta in modules_config.items() %}
+            {% set enabled = access and (access|attr(meta.field)) %}
+            {% if enabled %}
+              <a class="recent-item dossier" href="{{ url_for('client_dashboard', module=key) }}"><strong>{{ meta.label }}</strong><span>{{ meta.description }}</span><em>Disponible dans votre espace</em></a>
+            {% else %}
+              <span class="recent-item dossier muted-item"><strong>{{ meta.label }}</strong><span>{{ meta.description }}</span><em>Module non activé</em></span>
+            {% endif %}
           {% endfor %}
         </article>
       </section>
