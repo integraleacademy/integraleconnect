@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Espace Intégrale Connect{% endblock %}
+
+{% block content %}
+<header class="client-top">
+  <img src="{{ url_for('static', filename='img/logo_principal_horizontal.png') }}" alt="Intégrale Connect">
+  <div>
+    <strong>{{ current_user.tenant.company_name }}</strong>
+    <a href="{{ url_for('logout') }}">Déconnexion</a>
+  </div>
+</header>
+
+<main class="client-main">
+  <span class="eyebrow">Connecter • Piloter • Certifier</span>
+  <h1>Bienvenue sur Intégrale Connect</h1>
+  <p>Sélectionnez un module pour commencer</p>
+
+  <section class="module-grid">
+    {% for key, meta in modules_config.items() %}
+      {% set enabled = access and access[meta.field] %}
+      <article class="module-card {{ '' if enabled else 'locked' }}">
+        <div class="module-icon">{{ '↗' if enabled else '🔒' }}</div>
+        <h2>{{ meta.label }}</h2>
+
+        {% if enabled %}
+          <p>Accès activé pour votre centre.</p>
+          <a class="btn btn-primary" href="{{ url_for('module_placeholder', module_key=key) }}">Ouvrir</a>
+        {% else %}
+          <p>Contactez votre administrateur Intégrale Connect pour activer ce module.</p>
+          <button class="btn" disabled>Module non activé</button>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </section>
+</main>
+{% endblock %}

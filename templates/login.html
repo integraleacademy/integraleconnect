@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Connexion - Intégrale Connect{% endblock %}
+{% block body_class %}login-body{% endblock %}
+{% block content %}
+<main class="login-shell">
+  <div class="login-brand"><img src="{{ url_for('static', filename='img/logo_sur_fond_fonce.png') }}" alt="Intégrale Connect"><p>Connecter • Piloter • Certifier</p></div>
+  <form method="post" class="login-card">
+    <span class="eyebrow">Espace sécurisé</span>
+    <h1>Connectez-vous à votre espace</h1>
+    <label>Nom utilisateur<input type="text" name="username" autocomplete="username" required autofocus></label>
+    <label>Mot de passe<input type="password" name="password" autocomplete="current-password" required></label>
+    <button class="btn btn-primary full" type="submit">Se connecter</button>
+  </form>
+</main>
+{% endblock %}
