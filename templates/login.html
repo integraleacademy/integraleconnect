@@ -2,14 +2,32 @@
 {% block title %}Connexion - Intégrale Connect{% endblock %}
 {% block body_class %}login-body{% endblock %}
 {% block content %}
-<main class="login-shell">
-  <div class="login-brand"><img src="{{ url_for('static', filename='img/logo_sur_fond_fonce.png') }}" alt="Intégrale Connect"><p>Connecter • Piloter • Certifier</p></div>
-  <form method="post" class="login-card">
+<main class="login-shell premium-login">
+  <section class="login-hero" aria-label="Présentation Intégrale Connect">
+    <div class="login-brand premium-brand">
+      <img src="{{ url_for('static', filename='img/logo_sur_fond_fonce.png') }}" alt="Intégrale Connect">
+      <span>Plateforme SaaS formation nouvelle génération</span>
+    </div>
+    <div class="hero-copy">
+      <span class="eyebrow">Connecter • Piloter • Certifier</span>
+      <h1>La console de pilotage conçue pour les réseaux de formation ambitieux.</h1>
+      <p>Centralisez vos centres, activez les modules métiers et gardez une vision claire des opérations sur une interface sécurisée et premium.</p>
+    </div>
+    <div class="trust-grid">
+      <div><strong>99.9%</strong><span>Disponibilité cible</span></div>
+      <div><strong>3</strong><span>Modules métiers</span></div>
+      <div><strong>24/7</strong><span>Accès sécurisé</span></div>
+    </div>
+  </section>
+
+  <form method="post" class="login-card premium-card">
     <span class="eyebrow">Espace sécurisé</span>
-    <h1>Connectez-vous à votre espace</h1>
-    <label>Nom utilisateur<input type="text" name="username" autocomplete="username" required autofocus></label>
-    <label>Mot de passe<input type="password" name="password" autocomplete="current-password" required></label>
+    <h2>Connexion à votre organisation</h2>
+    <p class="form-intro">Accédez à votre environnement Intégrale Connect avec vos identifiants administrateur.</p>
+    <label>Nom utilisateur<input type="text" name="username" autocomplete="username" placeholder="ex. admin" required autofocus></label>
+    <label>Mot de passe<input type="password" name="password" autocomplete="current-password" placeholder="••••••••" required></label>
     <button class="btn btn-primary full" type="submit">Se connecter</button>
+    <p class="security-note">Chiffrement des mots de passe, sessions protégées et données persistées sur disque Render.</p>
   </form>
 </main>
 {% endblock %}

@@ -1,5 +1,7 @@
 import os
 from functools import wraps
+from pathlib import Path
+
 from flask import Flask, abort, flash, redirect, render_template, request, url_for
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -7,9 +9,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from models import ModuleAccess, Tenant, User, db
 
 MODULES = {
-    "crm": {"label": "Intégrale Connect CRM", "field": "module_crm"},
-    "partenaires": {"label": "Intégrale Connect Partenaires", "field": "module_partenaires"},
-    "cpf": {"label": "Intégrale Connect CPF", "field": "module_cpf"},
+    "crm": {"label": "Intégrale Connect CRM", "field": "module_crm", "icon": "◇", "description": "Pipeline commercial, relances et suivi des candidats en temps réel."},
+    "partenaires": {"label": "Intégrale Connect Partenaires", "field": "module_partenaires", "icon": "◎", "description": "Pilotage du réseau, conventions, opportunités et reporting partenaires."},
+    "cpf": {"label": "Intégrale Connect CPF", "field": "module_cpf", "icon": "◈", "description": "Suivi CPF, conformité Qualiopi et dossiers administratifs centralisés."},
 }
 
 
@@ -19,11 +21,24 @@ def normalize_database_url(url):
     return url
 
 
+def default_sqlite_uri():
+    """Use Render persistent disks when available, otherwise Flask's instance folder."""
+    explicit_path = os.environ.get("SQLITE_PATH")
+    if explicit_path:
+        db_path = Path(explicit_path)
+    elif Path("/data").exists():
+        db_path = Path("/data/integrale_connect.db")
+    else:
+        db_path = Path.cwd() / "instance" / "integrale_connect.db"
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    return f"sqlite:///{db_path}"
+
+
 def create_app():
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-change-me")
     database_url = normalize_database_url(os.environ.get("DATABASE_URL"))
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_url or "sqlite:///integrale_connect.db"
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url or default_sqlite_uri()
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
@@ -52,6 +67,14 @@ def create_app():
 
     def get_client_user(tenant):
         return User.query.filter_by(tenant_id=tenant.id, role="client_admin").first()
+
+    def ensure_module_access(tenant):
+        if tenant.module_access:
+            return tenant.module_access
+        access = ModuleAccess(tenant_id=tenant.id)
+        db.session.add(access)
+        db.session.flush()
+        return access
 
     def module_names(access):
         if not access:
@@ -144,7 +167,7 @@ def create_app():
                 )
                 db.session.add_all([user, access])
                 db.session.commit()
-                flash("Centre de formation créé avec succès.", "success")
+                flash("Centre de formation créé avec succès. Le compte client peut se connecter immédiatement.", "success")
                 return redirect(url_for("tenants"))
         return render_template("super_admin/create_tenant.html")
 
@@ -154,13 +177,15 @@ def create_app():
     def edit_tenant(tenant_id):
         tenant = db.session.get(Tenant, tenant_id) or abort(404)
         user = get_client_user(tenant)
-        access = tenant.module_access or ModuleAccess(tenant_id=tenant.id)
+        access = ensure_module_access(tenant)
         if request.method == "POST":
             siret = request.form.get("siret", "").strip()
             username = request.form.get("username", "").strip()
-            if not validate_siret(siret):
+            if not all([request.form.get("company_name", "").strip(), siret, request.form.get("contact_name", "").strip(), username]):
+                flash("Tous les champs sont obligatoires.", "error")
+            elif not validate_siret(siret):
                 flash("Le SIRET doit contenir exactement 14 chiffres.", "error")
-            elif User.query.filter(User.username == username, User.id != user.id).first():
+            elif User.query.filter(User.username == username, User.id != (user.id if user else 0)).first():
                 flash("Ce nom utilisateur existe déjà.", "error")
             elif Tenant.query.filter(Tenant.siret == siret, Tenant.id != tenant.id).first():
                 flash("Ce SIRET existe déjà.", "error")
@@ -169,14 +194,16 @@ def create_app():
                 tenant.siret = siret
                 tenant.contact_name = request.form.get("contact_name", "").strip()
                 tenant.is_active = request.form.get("is_active") == "on"
+                if not user:
+                    user = User(tenant_id=tenant.id, role="client_admin", password_hash=generate_password_hash(os.environ.get("DEFAULT_CLIENT_PASSWORD", "ChangeMe123!")))
+                    db.session.add(user)
                 user.username = username
                 user.is_active = tenant.is_active
                 access.module_crm = "module_crm" in request.form
                 access.module_partenaires = "module_partenaires" in request.form
                 access.module_cpf = "module_cpf" in request.form
-                db.session.add(access)
                 db.session.commit()
-                flash("Centre mis à jour avec succès.", "success")
+                flash("Centre mis à jour avec succès. Les droits sont appliqués sur le compte client.", "success")
                 return redirect(url_for("tenants"))
         return render_template("super_admin/edit_tenant.html", tenant=tenant, user=user, access=access)
 
@@ -199,7 +226,9 @@ def create_app():
         tenant = db.session.get(Tenant, tenant_id) or abort(404)
         user = get_client_user(tenant)
         new_password = request.form.get("new_password", "")
-        if not new_password:
+        if not user:
+            flash("Aucun compte client n’est rattaché à ce centre.", "error")
+        elif not new_password:
             flash("Veuillez saisir un nouveau mot de passe.", "error")
         else:
             user.password_hash = generate_password_hash(new_password)

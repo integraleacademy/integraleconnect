@@ -3,31 +3,39 @@
 {% block title %}Espace Intégrale Connect{% endblock %}
 
 {% block content %}
-<header class="client-top">
+<header class="client-top premium-top">
   <img src="{{ url_for('static', filename='img/logo_principal_horizontal.png') }}" alt="Intégrale Connect">
   <div>
-    <strong>{{ current_user.tenant.company_name }}</strong>
+    <span class="tenant-badge">{{ current_user.tenant.company_name }}</span>
     <a href="{{ url_for('logout') }}">Déconnexion</a>
   </div>
 </header>
 
-<main class="client-main">
-  <span class="eyebrow">Connecter • Piloter • Certifier</span>
-  <h1>Bienvenue sur Intégrale Connect</h1>
-  <p>Sélectionnez un module pour commencer</p>
+<main class="client-main premium-main">
+  <section class="client-hero-card">
+    <div>
+      <span class="eyebrow">Workspace centre de formation</span>
+      <h1>Bienvenue sur Intégrale Connect</h1>
+      <p>Vos modules sont affichés automatiquement selon les droits activés par l’administrateur principal.</p>
+    </div>
+    <div class="hero-status"><strong>{{ module_names(access)|length }}</strong><span>module(s) activé(s)</span></div>
+  </section>
 
-  <section class="module-grid">
+  <section class="module-grid premium-modules">
     {% for key, meta in modules_config.items() %}
       {% set enabled = access and access[meta.field] %}
       <article class="module-card {{ '' if enabled else 'locked' }}">
-        <div class="module-icon">{{ '↗' if enabled else '🔒' }}</div>
+        <div class="module-card-head">
+          <div class="module-icon">{{ meta.icon if enabled else '×' }}</div>
+          <span class="pill {{ 'ok' if enabled else 'off' }}">{{ 'Activé' if enabled else 'Verrouillé' }}</span>
+        </div>
         <h2>{{ meta.label }}</h2>
 
         {% if enabled %}
-          <p>Accès activé pour votre centre.</p>
-          <a class="btn btn-primary" href="{{ url_for('module_placeholder', module_key=key) }}">Ouvrir</a>
+          <p>{{ meta.description }}</p>
+          <a class="btn btn-primary" href="{{ url_for('module_placeholder', module_key=key) }}">Ouvrir le module</a>
         {% else %}
-          <p>Contactez votre administrateur Intégrale Connect pour activer ce module.</p>
+          <p>Ce module n’est pas inclus dans vos droits actuels. Demandez son activation à Intégrale Connect.</p>
           <button class="btn" disabled>Module non activé</button>
         {% endif %}
       </article>
