@@ -1,45 +1,100 @@
 {% extends "base.html" %}
 
-{% block title %}Espace Intégrale Connect{% endblock %}
+{% block title %}Dashboard Intégrale Connect{% endblock %}
 
 {% block content %}
-<header class="client-top premium-top">
-  <img src="{{ url_for('static', filename='img/logo_principal_horizontal.png') }}" alt="Intégrale Connect">
-  <div>
-    <span class="tenant-badge">{{ current_user.tenant.company_name }}</span>
-    <a href="{{ url_for('logout') }}">Déconnexion</a>
-  </div>
-</header>
-
-<main class="client-main premium-main">
-  <section class="client-hero-card">
-    <div>
-      <span class="eyebrow">Workspace centre de formation</span>
-      <h1>Bienvenue sur Intégrale Connect</h1>
-      <p>Vos modules sont affichés automatiquement selon les droits activés par l’administrateur principal.</p>
+{% set active_meta = modules_config[active_module] if active_module else none %}
+<div class="modern-dashboard-shell">
+  <aside class="modern-sidebar">
+    <div class="sidebar-brand">
+      <img src="{{ url_for('static', filename='img/logo_sur_fond_fonce.png') }}" alt="Intégrale Connect">
     </div>
-    <div class="hero-status"><strong>{{ module_names(access)|length }}</strong><span>module(s) activé(s)</span></div>
-  </section>
 
-  <section class="module-grid premium-modules">
-    {% for key, meta in modules_config.items() %}
-      {% set enabled = access and access[meta.field] %}
-      <article class="module-card {{ '' if enabled else 'locked' }}">
-        <div class="module-card-head">
-          <div class="module-icon">{{ meta.icon if enabled else '×' }}</div>
-          <span class="pill {{ 'ok' if enabled else 'off' }}">{{ 'Activé' if enabled else 'Verrouillé' }}</span>
+    <nav class="sidebar-nav" aria-label="Navigation principale">
+      <a class="active" href="{{ url_for('client_dashboard', module=active_module) if active_module else url_for('client_dashboard') }}"><span>⌂</span>Accueil</a>
+      <a href="#actions"><span>☆</span>Favoris</a>
+      <a href="#planning"><span>◷</span>Pilotage</a>
+      <a href="#modules"><span>▣</span>Modules</a>
+      <a href="#activity"><span>☷</span>Données récentes</a>
+      <a href="#"><span>⚙</span>Administration</a>
+    </nav>
+  </aside>
+
+  <div class="dashboard-workspace">
+    <header class="dashboard-topbar">
+      <a class="home-chip" href="{{ url_for('client_dashboard') }}" aria-label="Accueil">⌂</a>
+      <div class="dashboard-search">⌕ <span>Rechercher</span></div>
+      <div class="dashboard-account">
+        <span class="notification-dot">⌁</span>
+        <span class="avatar">{{ current_user.tenant.company_name[:2].upper() }}</span>
+        <strong>{{ current_user.tenant.company_name }}</strong>
+        <a href="{{ url_for('logout') }}">Déconnexion</a>
+      </div>
+    </header>
+
+    <main class="dashboard-content">
+      <section class="dashboard-tabs" id="modules" aria-label="Changer de module">
+        {% for key, meta in modules_config.items() %}
+          {% set enabled = access and (access|attr(meta.field)) %}
+          {% if enabled %}
+            <a class="module-switch {{ 'active' if key == active_module else '' }}" href="{{ url_for('client_dashboard', module=key) }}">
+              <img src="{{ url_for('static', filename=meta.logo) }}" alt="{{ meta.label }}" onerror="this.hidden=true; this.nextElementSibling.hidden=false">
+              <span class="logo-fallback" hidden>{{ meta.short_label }}</span>
+              <span>{{ meta.short_label }}</span>
+            </a>
+          {% else %}
+            <span class="module-switch locked" title="Module non activé">
+              <img src="{{ url_for('static', filename=meta.logo) }}" alt="{{ meta.label }}" onerror="this.hidden=true; this.nextElementSibling.hidden=false">
+              <span class="logo-fallback" hidden>{{ meta.short_label }}</span>
+              <span>{{ meta.short_label }}</span>
+            </span>
+          {% endif %}
+        {% endfor %}
+      </section>
+
+      <section class="dashboard-title-card">
+        <div>
+          <span class="eyebrow">Tableau de bord</span>
+          <h1>{{ active_meta.label if active_meta else 'Intégrale Connect' }}</h1>
+          <p>{{ active_meta.description if active_meta else 'Aucun module actif pour le moment. Contactez Intégrale Connect pour activer votre espace.' }}</p>
         </div>
-        <h2>{{ meta.label }}</h2>
+        <div class="title-actions">
+          <a class="widget-button" href="#modules">＋ Widget</a>
+          {% if active_module %}<a class="btn btn-primary" href="{{ url_for('module_placeholder', module_key=active_module) }}">Ouvrir</a>{% endif %}
+        </div>
+      </section>
 
-        {% if enabled %}
-          <p>{{ meta.description }}</p>
-          <a class="btn btn-primary" href="{{ url_for('module_placeholder', module_key=key) }}">Ouvrir le module</a>
-        {% else %}
-          <p>Ce module n’est pas inclus dans vos droits actuels. Demandez son activation à Intégrale Connect.</p>
-          <button class="btn" disabled>Module non activé</button>
-        {% endif %}
-      </article>
-    {% endfor %}
-  </section>
-</main>
+      <section class="dashboard-grid">
+        <article class="widget-card action-widget" id="actions">
+          <div class="widget-head"><h2>Accueil - Mes actions</h2><span>⋮</span></div>
+          <div class="action-table">
+            <span></span><strong>En retard</strong><strong>Aujourd'hui</strong>
+            <span>Mes factures</span><b class="danger-line">1</b><b class="blue-line">0</b>
+            <span>Dossiers à traiter</span><b class="orange-line">4</b><b class="blue-line">7</b>
+          </div>
+        </article>
+
+        <article class="widget-card planning-widget" id="planning">
+          <div class="widget-head"><h2>Accueil - Mon planning</h2><span>⋮</span></div>
+          <div class="date-row"><span>‹</span><strong>16/06/2026</strong><span>›</span></div>
+          <div class="empty-event"><strong>Mar.<br><em>16</em></strong><span>Pas d'évènement</span></div>
+        </article>
+
+        <article class="widget-card list-widget" id="activity">
+          <div class="widget-head"><h2>{{ active_meta.short_label if active_meta else 'Module' }} - Éléments récents</h2><span>⋮</span></div>
+          {% for item in ['APP BTS MCO 2EME ANNEE 2024-2026', 'APP BTS MOS 1ERE ANNEE 2026-2028', 'FC APS JUILLET 2026', 'FC DIRIGEANT NOVEMBRE 2026', 'AFC APS + SSIAP 1 AVRIL 2026'] %}
+            <a class="recent-item" href="{{ url_for('module_placeholder', module_key=active_module) if active_module else '#' }}"><strong>{{ item }}</strong><em>Consulté il y a {{ loop.index }} jour{{ 's' if loop.index > 1 else '' }}</em></a>
+          {% endfor %}
+        </article>
+
+        <article class="widget-card list-widget dossiers-widget">
+          <div class="widget-head"><h2>Dossier - Éléments récents</h2><span>⋮</span></div>
+          {% for dossier in ['Dossier0337 - BOUKHARI Sara', 'Dossier0368 - MALET Mickael', 'Dossier0378 - BOUTIN Pauline', 'Dossier0374 - BAEGERT Romain', 'Dossier0375 - YESSAD Rayan'] %}
+            <a class="recent-item dossier" href="{{ url_for('module_placeholder', module_key=active_module) if active_module else '#' }}"><strong>♙ {{ dossier }}</strong><span>{{ ['DIRIGEANT D’UNE ENTREPRISE DE SÉCURITÉ PRIVÉE', 'CHAUFFEUR VTC', 'BTS PI', 'TFP APS', 'Conseiller formation'][loop.index0] }}</span><em>Consulté il y a {{ loop.index * 10 }} minutes</em></a>
+          {% endfor %}
+        </article>
+      </section>
+    </main>
+  </div>
+</div>
 {% endblock %}
