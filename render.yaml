@@ -4,6 +4,10 @@ services:
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
+    disk:
+      name: integrale-connect-data
+      mountPath: /data
+      sizeGB: 10
     envVars:
       - key: SECRET_KEY
         generateValue: true
@@ -11,12 +15,5 @@ services:
         sync: false
       - key: SUPER_ADMIN_PASSWORD
         sync: false
-      - key: DATABASE_URL
-        fromDatabase:
-          name: integrale-connect-db
-          property: connectionString
-
-databases:
-  - name: integrale-connect-db
-    databaseName: integrale_connect
-    user: integrale_connect
+      - key: SQLITE_PATH
+        value: /data/integrale_connect.db
